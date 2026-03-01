@@ -8,40 +8,12 @@ different API endpoint.
 """
 
 from datetime import datetime, timedelta
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-import os
+from googleapiclient.discovery import build, Resource
 
-from src.config import CREDENTIALS_FILE, TOKEN_FILE, SCOPES
+from src.auth import get_credentials
 
-
-def get_calendar_service():
-    """
-    Authenticate and return a Calendar API service object.
-
-    Reuses the same token file as Gmail — one OAuth flow gives
-    access to both services because we requested both scopes upfront.
-    This is why the SCOPES list in config.py includes both Gmail and Calendar.
-    """
-    creds = None
-
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow  = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open(TOKEN_FILE, "w") as f:
-            f.write(creds.to_json())
-
-    # Only difference from gmail_client — "calendar" instead of "gmail"
-    return build("calendar", "v3", credentials=creds)
-
+def get_calendar_service() -> Resource:
+    return build("calendar", "v3", credentials=get_credentials())
 
 def get_upcoming_events(days_ahead: int = 7, max_results: int = 20) -> list[dict]:
     """
@@ -55,6 +27,7 @@ def get_upcoming_events(days_ahead: int = 7, max_results: int = 20) -> list[dict
     now      = datetime.utcnow().isoformat() + "Z"
     end_time = (datetime.utcnow() + timedelta(days=days_ahead)).isoformat() + "Z"
 
+    # type: ignore[attr-defined] - Google API dynamically generates methods
     result = service.events().list(
         calendarId   = "primary",
         timeMin      = now,
@@ -94,6 +67,7 @@ def create_event(title: str, start_time: str, end_time: str, description: str = 
     }
 
     try:
+        # type: ignore[attr-defined] - Google API dynamically generates methods
         created = service.events().insert(
             calendarId = "primary",
             body       = event

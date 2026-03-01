@@ -11,46 +11,15 @@ translates those requests into Gmail API calls.
 import base64
 import email
 from email.mime.text import MIMEText
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
+from src.auth import get_credentials
 import os
 
-from src.config import CREDENTIALS_FILE, TOKEN_FILE, SCOPES, EMAIL_FETCH_LIMIT
+from src.config import EMAIL_FETCH_LIMIT
 
 
-def get_gmail_service():
-    """
-    Authenticate with Google and return a Gmail API service object.
-
-    First run: opens a browser window asking you to click Allow.
-    Every run after: silently loads the saved token and refreshes if expired.
-
-    Think of this like a bouncer checking your ID — first time you
-    need to show your passport, after that your membership card works.
-    """
-    creds = None
-
-    # Load existing token if it exists
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-
-    # If no valid token, run the OAuth flow
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            # Token expired — refresh it silently without user interaction
-            creds.refresh(Request())
-        else:
-            # No token at all — open browser for user to click Allow
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-
-        # Save token for next run
-        with open(TOKEN_FILE, "w") as f:
-            f.write(creds.to_json())
-
-    return build("gmail", "v1", credentials=creds)
+def get_gmail_service() -> Resource:
+    return build("gmail", "v1", credentials=get_credentials())
 
 
 def get_recent_emails(query: str = "", max_results: int = EMAIL_FETCH_LIMIT) -> list[dict]:
@@ -66,6 +35,7 @@ def get_recent_emails(query: str = "", max_results: int = EMAIL_FETCH_LIMIT) -> 
     service = get_gmail_service()
 
     # Step 1: get list of message IDs matching the query
+    # type: ignore[attr-defined] - Google API dynamically generates methods
     result   = service.users().messages().list(
         userId      = "me",
         q           = query,
@@ -80,6 +50,7 @@ def get_recent_emails(query: str = "", max_results: int = EMAIL_FETCH_LIMIT) -> 
     emails = []
     for msg in messages:
         try:
+            # type: ignore[attr-defined] - Google API dynamically generates methods
             full_msg = service.users().messages().get(
                 userId  = "me",
                 id      = msg["id"],
@@ -110,6 +81,7 @@ def send_email(to: str, subject: str, body: str) -> dict:
     encoded = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
     try:
+        # type: ignore[attr-defined] - Google API dynamically generates methods
         sent = service.users().messages().send(
             userId = "me",
             body   = {"raw": encoded}
