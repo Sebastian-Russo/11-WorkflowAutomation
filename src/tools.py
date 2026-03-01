@@ -326,6 +326,126 @@ UPDATE_CELL = {
     }
 }
 
+# ── Docs tools ────────────────────────────────────────────────
+GET_DOCUMENT = {
+    "name": "get_document",
+    "description": """Read the content of a Google Doc. Use this when the user wants to:
+- Read or summarize a specific document
+- Extract information from a doc
+- Review the contents of a Google Doc
+The document_id is the long string in the Google Docs URL.""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "document_id": {
+                "type":        "string",
+                "description": "The document ID from the URL"
+            }
+        },
+        "required": ["document_id"]
+    }
+}
+
+CREATE_DOCUMENT = {
+    "name": "create_document",
+    "description": """Create a new Google Doc with content. Use this when the user wants to:
+- Save generated text as a document
+- Create meeting notes
+- Draft and store a document permanently
+Returns a link to the newly created document.""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "title":   {"type": "string", "description": "Document title"},
+            "content": {"type": "string", "description": "Full text content"}
+        },
+        "required": ["title", "content"]
+    }
+}
+
+APPEND_TO_DOCUMENT = {
+    "name": "append_to_document",
+    "description": """Append text to the end of an existing Google Doc. Use this when the user wants to:
+- Add content to an existing document
+- Update a running log or notes doc
+- Add a new section without replacing existing content""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "document_id": {"type": "string", "description": "The document ID from the URL"},
+            "content":     {"type": "string", "description": "Text to append"}
+        },
+        "required": ["document_id", "content"]
+    }
+}
+
+LIST_HEADINGS = {
+    "name": "list_headings",
+    "description": """List all headings in a Google Doc to understand its structure. Use this when the user wants to:
+- Get an overview of a long document
+- Find out what sections a doc contains
+- Navigate a document before reading it
+- Understand the structure of a report or notes doc""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "document_id": {"type": "string", "description": "The document ID from the URL"}
+        },
+        "required": ["document_id"]
+    }
+}
+
+SEARCH_IN_DOCUMENT = {
+    "name": "search_in_document",
+    "description": """Search for a specific term within a Google Doc. Use this when the user wants to:
+- Find where a topic is mentioned in a document
+- Locate a specific paragraph or section
+- Check if something appears in a doc""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "document_id": {"type": "string", "description": "The document ID from the URL"},
+            "search_term": {"type": "string", "description": "Term to search for"}
+        },
+        "required": ["document_id", "search_term"]
+    }
+}
+
+FORMAT_TEXT = {
+    "name": "format_text",
+    "description": """Apply formatting to text in a Google Doc. Use this when the user wants to:
+- Bold or italicize specific text
+- Apply a heading style to a section
+- Format a title or subtitle""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "document_id":   {"type": "string",  "description": "The document ID from the URL"},
+            "text_to_find":  {"type": "string",  "description": "The exact text to format"},
+            "bold":          {"type": "boolean", "description": "Apply bold formatting", "default": False},
+            "italic":        {"type": "boolean", "description": "Apply italic formatting", "default": False},
+            "heading_level": {"type": "integer", "description": "Heading level 1-6. Overrides bold/italic."}
+        },
+        "required": ["document_id", "text_to_find"]
+    }
+}
+
+DELETE_CONTENT = {
+    "name": "delete_content",
+    "description": """Delete specific text from a Google Doc. Use this when the user wants to:
+- Remove a section from a document
+- Delete a paragraph or sentence
+- Clean up a document
+WARNING: This is permanent and cannot be undone via API.""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "document_id":     {"type": "string", "description": "The document ID from the URL"},
+            "text_to_delete":  {"type": "string", "description": "The exact text to delete"}
+        },
+        "required": ["document_id", "text_to_delete"]
+    }
+}
 
 # ── All tools as a list — passed directly to the Anthropic API ─
 ALL_TOOLS = [
@@ -340,5 +460,12 @@ ALL_TOOLS = [
     GET_FILE_CONTENT,
     GET_SHEET_VALUES,
     APPEND_ROW,
-    UPDATE_CELL
+    UPDATE_CELL,
+    GET_DOCUMENT,
+    CREATE_DOCUMENT,
+    APPEND_TO_DOCUMENT,
+    LIST_HEADINGS,
+    SEARCH_IN_DOCUMENT,
+    FORMAT_TEXT,
+    DELETE_CONTENT
 ]

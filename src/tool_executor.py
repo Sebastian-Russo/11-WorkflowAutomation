@@ -13,6 +13,10 @@ from src.calendar_client import get_upcoming_events, create_event
 from src.tasks_client import get_tasks, create_task, complete_task
 from src.drive_client import search_files, get_file_content
 from src.sheets_client import get_sheet_values, append_row, update_cell
+from src.docs_client import (
+    get_document, create_document, append_to_document,
+    list_headings, search_in_document, format_text, delete_content
+)
 
 def execute_tool(tool_name: str, tool_input: dict) -> dict:
     """
@@ -222,6 +226,84 @@ def execute_tool(tool_name: str, tool_input: dict) -> dict:
             spreadsheet_id = spreadsheet_id,
             cell           = cell,
             value          = value
+        )
+
+    elif tool_name == "get_document":
+        document_id = tool_input.get("document_id", "")
+        if not document_id:
+            return {"error": "document_id is required"}
+        return get_document(document_id=document_id)
+
+    elif tool_name == "create_document":
+        title   = tool_input.get("title", "")
+        content = tool_input.get("content", "")
+        if not title or not content:
+            return {"error": "title and content are required"}
+        return create_document(title=title, content=content)
+
+    elif tool_name == "append_to_document":
+        document_id = tool_input.get("document_id", "")
+        content     = tool_input.get("content", "")
+        if not document_id or not content:
+            return {"error": "document_id and content are required"}
+        return append_to_document(document_id=document_id, content=content)
+
+    elif tool_name == "list_headings":
+        document_id = tool_input.get("document_id", "")
+        if not document_id:
+            return {"error": "document_id is required"}
+        result = list_headings(document_id=document_id)
+        if not result["success"]:
+            return result
+        if not result["headings"]:
+            return {"result": "No headings found in this document."}
+        formatted = "\n".join(
+            f"  [{h['level']}] {h['text']}"
+            for h in result["headings"]
+        )
+        return {"result": formatted, "count": result["count"]}
+
+    elif tool_name == "search_in_document":
+        document_id = tool_input.get("document_id", "")
+        search_term = tool_input.get("search_term", "")
+        if not document_id or not search_term:
+            return {"error": "document_id and search_term are required"}
+        result = search_in_document(document_id=document_id, search_term=search_term)
+        if not result["success"]:
+            return result
+        if result["count"] == 0:
+            return {"result": f"'{search_term}' not found in document."}
+        formatted = f"Found {result['count']} occurrence(s) of '{search_term}':\n\n"
+        formatted += "\n\n---\n\n".join(
+            f"Match {i+1}:\n...{m['context']}..."
+            for i, m in enumerate(result["matches"])
+        )
+        return {"result": formatted}
+
+    elif tool_name == "format_text":
+        document_id   = tool_input.get("document_id", "")
+        text_to_find  = tool_input.get("text_to_find", "")
+        bold          = tool_input.get("bold", False)
+        italic        = tool_input.get("italic", False)
+        heading_level = tool_input.get("heading_level", None)
+        if not document_id or not text_to_find:
+            return {"error": "document_id and text_to_find are required"}
+        return format_text(
+            document_id   = document_id,
+            text_to_find  = text_to_find,
+            bold          = bold,
+            italic        = italic,
+            heading_level = heading_level
+        )
+
+    elif tool_name == "delete_content":
+        document_id    = tool_input.get("document_id", "")
+        text_to_delete = tool_input.get("text_to_delete", "")
+        if not document_id or not text_to_delete:
+            return {"error": "document_id and text_to_delete are required"}
+        return delete_content(
+            document_id    = document_id,
+            text_to_delete = text_to_delete
         )
 
     else:
