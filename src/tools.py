@@ -119,10 +119,94 @@ Convert natural language times like 'Friday at 2pm' to ISO format datetime strin
     }
 }
 
+# ── Tasks tools ───────────────────────────────────────────────
+GET_TASKS = {
+    "name": "get_tasks",
+    "description": """Fetch tasks from the user's Google Tasks. Use this when the user wants to:
+- See their to-do list
+- Check what tasks they have pending
+- Review tasks due soon
+- Look at a specific task list""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "tasklist_id": {
+                "type":        "string",
+                "description": "Task list ID. Use '@default' for the primary list.",
+                "default":     "@default"
+            },
+            "show_completed": {
+                "type":        "boolean",
+                "description": "Whether to include completed tasks. Default false.",
+                "default":     False
+            }
+        },
+        "required": []
+    }
+}
+
+CREATE_TASK = {
+    "name": "create_task",
+    "description": """Create a new task in Google Tasks. Use this when the user wants to:
+- Add something to their to-do list
+- Create a reminder
+- Log something they need to do later""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "title": {
+                "type":        "string",
+                "description": "Task title"
+            },
+            "notes": {
+                "type":        "string",
+                "description": "Optional notes or details about the task"
+            },
+            "due": {
+                "type":        "string",
+                "description": "Optional due date in RFC 3339 format e.g. '2026-03-01T00:00:00.000Z'"
+            },
+            "tasklist_id": {
+                "type":        "string",
+                "description": "Task list ID. Use '@default' for the primary list.",
+                "default":     "@default"
+            }
+        },
+        "required": ["title"]
+    }
+}
+
+COMPLETE_TASK = {
+    "name": "complete_task",
+    "description": """Mark a task as completed in Google Tasks. Use this when the user wants to:
+- Check off a task
+- Mark something as done
+- Complete an item on their to-do list
+First call get_tasks to find the task_id, then call this.""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "task_id": {
+                "type":        "string",
+                "description": "The task ID to mark as complete. Get this from get_tasks."
+            },
+            "tasklist_id": {
+                "type":        "string",
+                "description": "Task list ID. Use '@default' for the primary list.",
+                "default":     "@default"
+            }
+        },
+        "required": ["task_id"]
+    }
+}
+
 # ── All tools as a list — passed directly to the Anthropic API ─
 ALL_TOOLS = [
     GET_RECENT_EMAILS,
     SEND_EMAIL,
     GET_UPCOMING_EVENTS,
-    CREATE_EVENT
+    CREATE_EVENT,
+    GET_TASKS,
+    CREATE_TASK,
+    COMPLETE_TASK
 ]

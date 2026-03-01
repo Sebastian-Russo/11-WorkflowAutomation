@@ -10,7 +10,7 @@ it always goes through here.
 
 from src.gmail_client    import get_recent_emails, send_email
 from src.calendar_client import get_upcoming_events, create_event
-
+from src.tasks_client import get_tasks, create_task, complete_task
 
 def execute_tool(tool_name: str, tool_input: dict) -> dict:
     """
@@ -92,6 +92,46 @@ def execute_tool(tool_name: str, tool_input: dict) -> dict:
             description = description
         )
         return result
+
+    elif tool_name == "get_tasks":
+        tasklist_id     = tool_input.get("tasklist_id", "@default")
+        show_completed  = tool_input.get("show_completed", False)
+        tasks           = get_tasks(tasklist_id=tasklist_id, show_completed=show_completed)
+
+        if not tasks:
+            return {"result": "No tasks found."}
+
+        formatted = []
+        for i, t in enumerate(tasks, 1):
+            due  = f"  Due: {t['due']}\n" if t["due"] else ""
+            note = f"  Notes: {t['notes']}\n" if t["notes"] else ""
+            formatted.append(
+                f"Task {i} [id: {t['id']}]:\n"
+                f"  Title:  {t['title']}\n"
+                f"  Status: {t['status']}\n"
+                f"{due}{note}"
+            )
+        return {"result": "\n\n".join(formatted), "count": len(tasks)}
+
+    elif tool_name == "create_task":
+        title       = tool_input.get("title", "")
+        notes       = tool_input.get("notes", "")
+        due         = tool_input.get("due", "")
+        tasklist_id = tool_input.get("tasklist_id", "@default")
+
+        if not title:
+            return {"error": "Task title is required"}
+
+        return create_task(title=title, notes=notes, due=due, tasklist_id=tasklist_id)
+
+    elif tool_name == "complete_task":
+        task_id     = tool_input.get("task_id", "")
+        tasklist_id = tool_input.get("tasklist_id", "@default")
+
+        if not task_id:
+            return {"error": "task_id is required"}
+
+        return complete_task(task_id=task_id, tasklist_id=tasklist_id)
 
     else:
         return {"error": f"Unknown tool: {tool_name}"}
