@@ -12,6 +12,7 @@ from src.gmail_client    import get_recent_emails, send_email
 from src.calendar_client import get_upcoming_events, create_event
 from src.tasks_client import get_tasks, create_task, complete_task
 from src.drive_client import search_files, get_file_content
+from src.sheets_client import get_sheet_values, append_row, update_cell
 
 def execute_tool(tool_name: str, tool_input: dict) -> dict:
     """
@@ -164,6 +165,64 @@ def execute_tool(tool_name: str, tool_input: dict) -> dict:
             return {"error": "file_id is required"}
 
         return get_file_content(file_id=file_id)
+
+    elif tool_name == "get_sheet_values":
+        spreadsheet_id = tool_input.get("spreadsheet_id", "")
+        range_name     = tool_input.get("range_name", "Sheet1")
+
+        if not spreadsheet_id:
+            return {"error": "spreadsheet_id is required"}
+
+        result = get_sheet_values(spreadsheet_id=spreadsheet_id, range_name=range_name)
+
+        if not result["success"]:
+            return result
+
+        if not result["data"]:
+            return {"result": "Spreadsheet is empty or no data found in that range."}
+
+        # Format as readable table for Claude
+        headers  = result["headers"]
+        rows     = result["data"]
+        formatted = f"Headers: {', '.join(headers)}\n\n"
+        formatted += "\n".join(
+            " | ".join(str(row.get(h, "")) for h in headers)
+            for row in rows[:20]   # show first 20 rows
+        )
+        if result["row_count"] > 20:
+            formatted += f"\n\n...and {result['row_count'] - 20} more rows."
+
+        return {"result": formatted, "row_count": result["row_count"]}
+
+    elif tool_name == "append_row":
+        spreadsheet_id = tool_input.get("spreadsheet_id", "")
+        values         = tool_input.get("values", [])
+        range_name     = tool_input.get("range_name", "Sheet1")
+
+        if not spreadsheet_id:
+            return {"error": "spreadsheet_id is required"}
+        if not values:
+            return {"error": "values list is required"}
+
+        return append_row(
+            spreadsheet_id = spreadsheet_id,
+            values         = values,
+            range_name     = range_name
+        )
+
+    elif tool_name == "update_cell":
+        spreadsheet_id = tool_input.get("spreadsheet_id", "")
+        cell           = tool_input.get("cell", "")
+        value          = tool_input.get("value", "")
+
+        if not spreadsheet_id or not cell or not value:
+            return {"error": "spreadsheet_id, cell, and value are all required"}
+
+        return update_cell(
+            spreadsheet_id = spreadsheet_id,
+            cell           = cell,
+            value          = value
+        )
 
     else:
         return {"error": f"Unknown tool: {tool_name}"}

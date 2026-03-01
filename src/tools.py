@@ -245,6 +245,88 @@ First use search_files to find the file_id, then call this.""",
     }
 }
 
+# ── Sheets tools ──────────────────────────────────────────────
+GET_SHEET_VALUES = {
+    "name": "get_sheet_values",
+    "description": """Read data from a Google Sheets spreadsheet. Use this when the user wants to:
+- Read data from a spreadsheet
+- Check values in a specific sheet
+- Review a table of data
+- Look up information stored in a sheet
+The spreadsheet_id is the long string in the Google Sheets URL.""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "spreadsheet_id": {
+                "type":        "string",
+                "description": "The spreadsheet ID from the URL e.g. '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms'"
+            },
+            "range_name": {
+                "type":        "string",
+                "description": "A1 notation range e.g. 'Sheet1' or 'Sheet1!A1:D10'. Defaults to Sheet1.",
+                "default":     "Sheet1"
+            }
+        },
+        "required": ["spreadsheet_id"]
+    }
+}
+
+APPEND_ROW = {
+    "name": "append_row",
+    "description": """Append a new row to a Google Sheets spreadsheet. Use this when the user wants to:
+- Add a new entry to a spreadsheet
+- Log data to a sheet
+- Add a row to a table
+- Record something in a spreadsheet""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "spreadsheet_id": {
+                "type":        "string",
+                "description": "The spreadsheet ID from the URL"
+            },
+            "values": {
+                "type":        "array",
+                "items":       {"type": "string"},
+                "description": "List of values for the new row in column order e.g. ['2026-03-01', 'Groceries', '45.00']"
+            },
+            "range_name": {
+                "type":        "string",
+                "description": "Sheet name to append to. Defaults to Sheet1.",
+                "default":     "Sheet1"
+            }
+        },
+        "required": ["spreadsheet_id", "values"]
+    }
+}
+
+UPDATE_CELL = {
+    "name": "update_cell",
+    "description": """Update a single cell in a Google Sheets spreadsheet. Use this when the user wants to:
+- Change a specific value in a spreadsheet
+- Update a cell
+- Correct an entry in a sheet""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "spreadsheet_id": {
+                "type":        "string",
+                "description": "The spreadsheet ID from the URL"
+            },
+            "cell": {
+                "type":        "string",
+                "description": "Cell in A1 notation e.g. 'Sheet1!B5'"
+            },
+            "value": {
+                "type":        "string",
+                "description": "New value for the cell"
+            }
+        },
+        "required": ["spreadsheet_id", "cell", "value"]
+    }
+}
+
+
 # ── All tools as a list — passed directly to the Anthropic API ─
 ALL_TOOLS = [
     GET_RECENT_EMAILS,
@@ -255,5 +337,8 @@ ALL_TOOLS = [
     CREATE_TASK,
     COMPLETE_TASK,
     SEARCH_FILES,
-    GET_FILE_CONTENT
+    GET_FILE_CONTENT,
+    GET_SHEET_VALUES,
+    APPEND_ROW,
+    UPDATE_CELL
 ]

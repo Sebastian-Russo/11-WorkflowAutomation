@@ -42,6 +42,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/calendar.events",   # create/edit events
     "https://www.googleapis.com/auth/tasks",             # read/write tasks
     "https://www.googleapis.com/auth/drive.readonly",    # read drive files
+    "https://www.googleapis.com/auth/spreadsheets",      # read/write spreadsheets
 ]
 
 # How many emails to fetch at once — keeps responses fast and tokens low
