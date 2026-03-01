@@ -9,11 +9,11 @@ Sheets API works with ranges in A1 notation:
   "Sheet1!1:1"    = entire row 1
 """
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from src.auth import get_credentials
 
 
-def get_sheets_service():
+def get_sheets_service() -> Resource:
     return build("sheets", "v4", credentials=get_credentials())
 
 
@@ -28,7 +28,7 @@ def get_sheet_values(spreadsheet_id: str, range_name: str = "Sheet1") -> dict:
     service = get_sheets_service()
 
     try:
-        result = service.spreadsheets().values().get(
+        result = service.spreadsheets().values().get(  # type: ignore[attr-defined] - Google API dynamically generates methods
             spreadsheetId = spreadsheet_id,
             range         = range_name
         ).execute()
@@ -65,7 +65,7 @@ def append_row(spreadsheet_id: str, values: list, range_name: str = "Sheet1") ->
     service = get_sheets_service()
 
     try:
-        result = service.spreadsheets().values().append(
+        result = service.spreadsheets().values().append(  # type: ignore[attr-defined] - Google API dynamically generates methods
             spreadsheetId    = spreadsheet_id,
             range            = range_name,
             valueInputOption = "USER_ENTERED",   # interprets dates, numbers correctly
@@ -90,7 +90,7 @@ def update_cell(spreadsheet_id: str, cell: str, value: str) -> dict:
     service = get_sheets_service()
 
     try:
-        service.spreadsheets().values().update(
+        service.spreadsheets().values().update(  # type: ignore[attr-defined] - Google API dynamically generates methods
             spreadsheetId    = spreadsheet_id,
             range            = cell,
             valueInputOption = "USER_ENTERED",

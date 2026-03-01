@@ -6,11 +6,11 @@ find it, tell you what's in it, and hand you a summary.
 Drive readonly — we can search and read, not modify.
 """
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from src.auth import get_credentials
 
 
-def get_drive_service():
+def get_drive_service() -> Resource:
     return build("drive", "v3", credentials=get_credentials())
 
 
@@ -25,7 +25,7 @@ def search_files(query: str, max_results: int = 10) -> list[dict]:
     """
     service = get_drive_service()
 
-    result = service.files().list(
+    result = service.files().list(  # type: ignore[attr-defined] - Google API dynamically generates methods
         q          = query,
         pageSize   = max_results,
         fields     = "files(id, name, mimeType, modifiedTime, webViewLink)"
@@ -53,8 +53,7 @@ def get_file_content(file_id: str) -> dict:
     service = get_drive_service()
 
     try:
-        # Export Google Docs as plain text
-        content = service.files().export(
+        content = service.files().export(  # type: ignore[attr-defined] - Google API dynamically generates methods
             fileId   = file_id,
             mimeType = "text/plain"
         ).execute()

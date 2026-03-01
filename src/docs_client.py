@@ -8,11 +8,11 @@ in one batch. Think of it like giving someone a marked-up printout:
 "bold this, delete that, insert this here" — all at once.
 """
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from src.auth import get_credentials
 
 
-def get_docs_service():
+def get_docs_service() -> Resource:
     return build("docs", "v1", credentials=get_credentials())
 
 
@@ -26,7 +26,7 @@ def get_document(document_id: str) -> dict:
     service = get_docs_service()
 
     try:
-        doc   = service.documents().get(documentId=document_id).execute()
+        doc   = service.documents().get(documentId=document_id).execute()  # type: ignore[attr-defined] - Google API dynamically generates methods
         text  = _extract_text(doc)
         title = doc.get("title", "Untitled")
 
@@ -45,10 +45,10 @@ def create_document(title: str, content: str) -> dict:
     service = get_docs_service()
 
     try:
-        doc         = service.documents().create(body={"title": title}).execute()
+        doc         = service.documents().create(body={"title": title}).execute()  # type: ignore[attr-defined] - Google API dynamically generates methods
         document_id = doc["documentId"]
 
-        service.documents().batchUpdate(
+        service.documents().batchUpdate(  # type: ignore[attr-defined] - Google API dynamically generates methods
             documentId = document_id,
             body       = {
                 "requests": [{
@@ -81,14 +81,14 @@ def append_to_document(document_id: str, content: str) -> dict:
     service = get_docs_service()
 
     try:
-        doc          = service.documents().get(documentId=document_id).execute()
+        doc          = service.documents().get(documentId=document_id).execute()  # type: ignore[attr-defined] - Google API dynamically generates methods
         content_list = doc.get("body", {}).get("content", [])
 
         # Last element's endIndex minus 1 = safe insertion point at end
         # Google always reserves the final index for the document itself
         end_index = content_list[-1].get("endIndex", 1) - 1
 
-        service.documents().batchUpdate(
+        service.documents().batchUpdate(  # type: ignore[attr-defined] - Google API dynamically generates methods
             documentId = document_id,
             body       = {
                 "requests": [{
@@ -115,7 +115,7 @@ def list_headings(document_id: str) -> dict:
     service = get_docs_service()
 
     try:
-        doc      = service.documents().get(documentId=document_id).execute()
+        doc      = service.documents().get(documentId=document_id).execute()  # type: ignore[attr-defined] - Google API dynamically generates methods
         headings = []
 
         for block in doc.get("body", {}).get("content", []):
@@ -150,7 +150,7 @@ def search_in_document(document_id: str, search_term: str) -> dict:
     service = get_docs_service()
 
     try:
-        doc  = service.documents().get(documentId=document_id).execute()
+        doc  = service.documents().get(documentId=document_id).execute()  # type: ignore[attr-defined] - Google API dynamically generates methods
         text = _extract_text(doc)
 
         matches = []
@@ -197,7 +197,7 @@ def format_text(document_id: str, text_to_find: str, bold: bool = False,
     service = get_docs_service()
 
     try:
-        doc      = service.documents().get(documentId=document_id).execute()
+        doc      = service.documents().get(documentId=document_id).execute()  # type: ignore[attr-defined] - Google API dynamically generates methods
         full_text = _extract_text(doc)
 
         # Find the text position
@@ -245,7 +245,7 @@ def format_text(document_id: str, text_to_find: str, bold: bool = False,
         if not requests:
             return {"success": False, "error": "No formatting specified"}
 
-        service.documents().batchUpdate(
+        service.documents().batchUpdate(  # type: ignore[attr-defined] - Google API dynamically generates methods
             documentId = document_id,
             body       = {"requests": requests}
         ).execute()
@@ -265,7 +265,7 @@ def delete_content(document_id: str, text_to_delete: str) -> dict:
     service = get_docs_service()
 
     try:
-        doc       = service.documents().get(documentId=document_id).execute()
+        doc       = service.documents().get(documentId=document_id).execute()  # type: ignore[attr-defined] - Google API dynamically generates methods
         full_text = _extract_text(doc)
 
         idx = full_text.find(text_to_delete)
@@ -275,7 +275,7 @@ def delete_content(document_id: str, text_to_delete: str) -> dict:
         start_idx = idx + 1
         end_idx   = idx + len(text_to_delete) + 1
 
-        service.documents().batchUpdate(
+        service.documents().batchUpdate(  # type: ignore[attr-defined] - Google API dynamically generates methods
             documentId = document_id,
             body       = {
                 "requests": [{
