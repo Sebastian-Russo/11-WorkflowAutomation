@@ -40,7 +40,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.compose",     # draft emails
     "https://www.googleapis.com/auth/calendar.readonly", # read calendar
     "https://www.googleapis.com/auth/calendar.events",   # create/edit events
-    "https://www.googleapis.com/auth/tasks"              # read/write tasks
+    "https://www.googleapis.com/auth/tasks",             # read/write tasks
+    "https://www.googleapis.com/auth/drive.readonly",    # read drive files
 ]
 
 # How many emails to fetch at once — keeps responses fast and tokens low

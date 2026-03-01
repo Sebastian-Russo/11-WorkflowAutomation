@@ -200,6 +200,51 @@ First call get_tasks to find the task_id, then call this.""",
     }
 }
 
+# ── Drive tools ───────────────────────────────────────────────
+SEARCH_FILES = {
+    "name": "search_files",
+    "description": """Search for files in Google Drive. Use this when the user wants to:
+- Find a specific document, spreadsheet, or file
+- Look for files by name or topic
+- Browse recent files
+- Locate a presentation or PDF
+Supports Drive query syntax for precise searches.""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type":        "string",
+                "description": "Drive search query e.g. \"name contains 'budget'\" or \"name contains 'meeting notes'\""
+            },
+            "max_results": {
+                "type":        "integer",
+                "description": "Maximum number of files to return. Default 10.",
+                "default":     10
+            }
+        },
+        "required": ["query"]
+    }
+}
+
+GET_FILE_CONTENT = {
+    "name": "get_file_content",
+    "description": """Read the text content of a Google Doc or text file. Use this when the user wants to:
+- Read or summarize a specific document
+- Extract information from a file
+- Review the contents of a doc
+First use search_files to find the file_id, then call this.""",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "file_id": {
+                "type":        "string",
+                "description": "The file ID from search_files results"
+            }
+        },
+        "required": ["file_id"]
+    }
+}
+
 # ── All tools as a list — passed directly to the Anthropic API ─
 ALL_TOOLS = [
     GET_RECENT_EMAILS,
@@ -208,5 +253,7 @@ ALL_TOOLS = [
     CREATE_EVENT,
     GET_TASKS,
     CREATE_TASK,
-    COMPLETE_TASK
+    COMPLETE_TASK,
+    SEARCH_FILES,
+    GET_FILE_CONTENT
 ]

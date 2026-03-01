@@ -11,6 +11,7 @@ it always goes through here.
 from src.gmail_client    import get_recent_emails, send_email
 from src.calendar_client import get_upcoming_events, create_event
 from src.tasks_client import get_tasks, create_task, complete_task
+from src.drive_client import search_files, get_file_content
 
 def execute_tool(tool_name: str, tool_input: dict) -> dict:
     """
@@ -132,6 +133,37 @@ def execute_tool(tool_name: str, tool_input: dict) -> dict:
             return {"error": "task_id is required"}
 
         return complete_task(task_id=task_id, tasklist_id=tasklist_id)
+
+    elif tool_name == "search_files":
+        query       = tool_input.get("query", "")
+        max_results = tool_input.get("max_results", 10)
+
+        if not query:
+            return {"error": "Search query is required"}
+
+        files = search_files(query=query, max_results=max_results)
+
+        if not files:
+            return {"result": "No files found matching that query."}
+
+        formatted = []
+        for i, f in enumerate(files, 1):
+            formatted.append(
+                f"File {i} [id: {f['id']}]:\n"
+                f"  Name:     {f['name']}\n"
+                f"  Type:     {f['type']}\n"
+                f"  Modified: {f['modified']}\n"
+                f"  Link:     {f['link']}"
+            )
+        return {"result": "\n\n".join(formatted), "count": len(files)}
+
+    elif tool_name == "get_file_content":
+        file_id = tool_input.get("file_id", "")
+
+        if not file_id:
+            return {"error": "file_id is required"}
+
+        return get_file_content(file_id=file_id)
 
     else:
         return {"error": f"Unknown tool: {tool_name}"}
