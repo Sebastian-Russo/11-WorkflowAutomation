@@ -8,12 +8,12 @@ API clients. Claude never calls Gmail or Calendar directly —
 it always goes through here.
 """
 
-from src.gmail_client    import get_recent_emails, send_email
-from src.calendar_client import get_upcoming_events, create_event
-from src.tasks_client import get_tasks, create_task, complete_task
-from src.drive_client import search_files, get_file_content
-from src.sheets_client import get_sheet_values, append_row, update_cell
-from src.docs_client import (
+from src.integrations.gmail_client    import get_recent_emails, send_email
+from src.integrations.calendar_client import get_upcoming_events, create_event
+from src.integrations.tasks_client    import get_tasks, create_task, complete_task
+from src.integrations.drive_client    import search_files, get_file_content
+from src.integrations.sheets_client   import get_sheet_values, append_row, update_cell
+from src.integrations.docs_client     import (
     get_document, create_document, append_to_document,
     list_headings, search_in_document, format_text, delete_content
 )
