@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Assistant</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: #58a6ff;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: #555;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+    }
+
+    /* ── Chat window ── */
+    #chat-window {
+      flex: 1;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 85%;
+    }
+
+    .message.user { align-self: flex-end; align-items: flex-end; }
+    .message.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.6;
+      font-size: 0.93rem;
+      white-space: pre-wrap;
+    }
+
+    .user .bubble {
+      background: #1f6feb;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .assistant .bubble {
+      background: #21262d;
+      color: #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .assistant .bubble.loading {
+      color: #555;
+      font-style: italic;
+    }
+
+    /* ── Tools used badge ── */
+    .tools-used {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tool-badge {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #58a6ff;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ── Input area ── */
+    #input-area {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #message-input {
+      flex: 1;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      font-family: inherit;
+      padding: 12px 16px;
+      resize: none;
+      min-height: 48px;
+      max-height: 140px;
+      transition: border-color 0.2s;
+    }
+
+    #message-input:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    #send-btn {
+      background: #1f6feb;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      height: 48px;
+    }
+
+    #send-btn:hover { background: #388bfd; }
+    #send-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+    /* ── Reset button ── */
+    #reset-btn {
+      background: none;
+      border: none;
+      color: #555;
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 8px;
+      text-align: right;
+      width: 100%;
+      transition: color 0.2s;
+    }
+
+    #reset-btn:hover { color: #e0e0e0; }
+
+    /* ── Empty state ── */
+    #empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #555;
+    }
+
+    #empty-state .suggestion {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      color: #8b949e;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #empty-state .suggestion:hover {
+      border-color: #58a6ff;
+      color: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🤖 Personal Assistant</h1>
+  <p class="subtitle">Connected to Gmail and Google Calendar</p>
+
+  <button id="reset-btn" onclick="resetConversation()">↺ New conversation</button>
+
+  <div id="chat-window">
+    <div id="empty-state">
+      <p style="font-size:0.9rem;">Try asking:</p>
+      <div class="suggestion" onclick="fillInput(this)">What emails did I get today?</div>
+      <div class="suggestion" onclick="fillInput(this)">What's on my calendar this week?</div>
+      <div class="suggestion" onclick="fillInput(this)">Check my calendar tomorrow and tell me if I'm free at 3pm</div>
+      <div class="suggestion" onclick="fillInput(this)">Find any unread emails about meetings</div>
+    </div>
+  </div>
+
+  <div id="input-area">
+    <textarea
+      id="message-input"
+      placeholder="Ask me anything about your email or calendar..."
+      rows="1"
+    ></textarea>
+    <button id="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  const sessionId = "session_" + Date.now();
+
+  // ── Send message ────────────────────────────────────────────
+  async function sendMessage() {
+    const input   = document.getElementById("message-input");
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Hide empty state on first message
+    const emptyState = document.getElementById("empty-state");
+    if (emptyState) emptyState.remove();
+
+    input.value = "";
+    resizeTextarea(input);
+    document.getElementById("send-btn").disabled = true;
+
+    // Show user message
+    appendMessage("user", message);
+
+    // Show loading
+    const loadingId = appendMessage("assistant", "Thinking...", [], true);
+
+    const res  = await fetch("/chat", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ message, session_id: sessionId })
+    });
+    const data = await res.json();
+
+    // Replace loading with real response
+    removeMessage(loadingId);
+    appendMessage("assistant", data.response, data.tools_used || []);
+
+    document.getElementById("send-btn").disabled = false;
+    input.focus();
+  }
+
+  // ── Reset conversation ──────────────────────────────────────
+  async function resetConversation() {
+    await fetch("/reset", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ session_id: sessionId })
+    });
+
+    const chatWindow = document.getElementById("chat-window");
+    chatWindow.innerHTML = `
+      <div id="empty-state">
+        <p style="font-size:0.9rem; color:#555;">Try asking:</p>
+        <div class="suggestion" onclick="fillInput(this)">What emails did I get today?</div>
+        <div class="suggestion" onclick="fillInput(this)">What's on my calendar this week?</div>
+        <div class="suggestion" onclick="fillInput(this)">Check my calendar tomorrow and tell me if I'm free at 3pm</div>
+        <div class="suggestion" onclick="fillInput(this)">Find any unread emails about meetings</div>
+      </div>`;
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────
+  function appendMessage(role, text, toolsUsed = [], isLoading = false) {
+    const emptyState = document.getElementById("empty-state");
+    if (emptyState) emptyState.remove();
+
+    const id  = "msg_" + Date.now() + Math.random();
+    const div = document.createElement("div");
+    div.className = `message ${role}`;
+    div.id        = id;
+
+    const bubble = document.createElement("div");
+    bubble.className = `bubble${isLoading ? " loading" : ""}`;
+    bubble.textContent = text;
+    div.appendChild(bubble);
+
+    // Show tool badges if any tools were used
+    if (toolsUsed.length > 0) {
+      const badges = document.createElement("div");
+      badges.className = "tools-used";
+      toolsUsed.forEach(t => {
+        const badge = document.createElement("span");
+        badge.className   = "tool-badge";
+        badge.textContent = `⚡ ${t}`;
+        badges.appendChild(badge);
+      });
+      div.appendChild(badges);
+    }
+
+    const chatWindow = document.getElementById("chat-window");
+    chatWindow.appendChild(div);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+
+    return id;
+  }
+
+  function removeMessage(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function fillInput(el) {
+    const input = document.getElementById("message-input");
+    input.value = el.textContent;
+    input.focus();
+    resizeTextarea(input);
+  }
+
+  function resizeTextarea(el) {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 140) + "px";
+  }
+
+  // Auto-resize textarea as user types
+  document.getElementById("message-input").addEventListener("input", function() {
+    resizeTextarea(this);
+  });
+
+  // Send on Enter, new line on Shift+Enter
+  document.getElementById("message-input").addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+</script>
+</body>
+</html>
